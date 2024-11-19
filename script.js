@@ -2,151 +2,156 @@ let tables = [];
 let activeTableId = null;
 let currentDish = null;
 let selectedExtra = null;
+let dailySales = 0; // Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„ÙŠÙˆÙ…
 
-// ÅäÔÇÁ ÇáÊÑÇÈíÒÇÊ ÈäÇÁğ Úáì ÚÏÏ ÇáÊÑÇÈíÒÇÊ ÇáãÏÎá
+// Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø§Øª Ø¨Ù†Ø§Ø¡Ù‹ Ø¹Ù„Ù‰ Ø¹Ø¯Ø¯ Ø§Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø§Øª Ø§Ù„Ù…Ø¯Ø®Ù„
 function createTables() {
-    const numTables = parseInt(document.getElementById('num-tables').value, 10);
+  const numTables = parseInt(document.getElementById("num-tables").value, 10);
+  const tablesContainer = document.getElementById("tables");
+  tablesContainer.innerHTML = "";
+  tables = [];
 
-    if (isNaN(numTables) || numTables < 1 || numTables > 10) {
-        alert('íÑÌì ÅÏÎÇá ÚÏÏ ÕÍíÍ Èíä 1 æ 10.');
-        return;
-    }
+  for (let i = 1; i <= numTables; i++) {
+    const table = {
+      id: i,
+      orders: []
+    };
+    tables.push(table);
 
-    const tablesContainer = document.getElementById('tables');
-    tablesContainer.innerHTML = '';
-    tables = [];
-
-    for (let i = 1; i <= numTables; i++) {
-        const table = { id: i, orders: [] };
-        tables.push(table);
-
-        const tableDiv = document.createElement('div');
-        tableDiv.classList.add('table');
-        tableDiv.id = `table-${table.id}`;
-        tableDiv.innerHTML = `
-            <h3>ÊÑÇÈíÒÉ ${table.id}</h3>
+    const tableDiv = document.createElement("div");
+    tableDiv.classList.add("table");
+    tableDiv.id = `table-${table.id}`;
+    tableDiv.innerHTML = `<h3>ØªØ±Ø§Ø¨ÙŠØ²Ø© ${table.id}</h3>
             <div id="orders-${table.id}"></div>
-            <p id="total-${table.id}">ÇáÅÌãÇáí: 0</p>
-            <button onclick="endOrder(${table.id})">ÅäåÇÁ ÇáÃæÑÏÑ</button>`;
-        
-        tableDiv.addEventListener('click', () => openMenu(table.id));
-        tablesContainer.appendChild(tableDiv);
-    }
+            <p id="total-${table.id}">Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ: 0</p>
+            <button onclick="endOrder(${table.id})">Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„Ø£ÙˆØ±Ø¯Ø±</button>`; // Ø¥Ø¶Ø§ÙØ© Ø²Ø± Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„Ø£ÙˆØ±Ø¯Ø±
+
+    tableDiv.addEventListener("click", () => openMenu(table.id));
+    tablesContainer.appendChild(tableDiv);
+  }
 }
 
-// İÊÍ äÇİĞÉ ÇáŞÇÆãÉ ÚäÏ ÇáÖÛØ Úáì ÊÑÇÈíÒÉ
+// ÙØªØ­ Ù†Ø§ÙØ°Ø© Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø¹Ù†Ø¯ Ø§Ù„Ø¶ØºØ· Ø¹Ù„Ù‰ ØªØ±Ø§Ø¨ÙŠØ²Ø©
 function openMenu(tableId) {
-    activeTableId = tableId;
-    document.getElementById('menu-popup').style.display = 'block';
+  activeTableId = tableId;
+  document.getElementById("menu-popup").style.display = "block";
 }
 
-// ÅÛáÇŞ äÇİĞÉ ÇáŞÇÆãÉ
+// Ø¥ØºÙ„Ø§Ù‚ Ù†Ø§ÙØ°Ø© Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©
 function closeMenu() {
-    document.getElementById('menu-popup').style.display = 'none';
+  document.getElementById("menu-popup").style.display = "none";
 }
 
-// ÇÎÊíÇÑ ÅÖÇİÉ (ãËá ÇáãßÑæäÉ)
+// Ø§Ø®ØªÙŠØ§Ø± Ø¥Ø¶Ø§ÙØ© (Ù…Ø«Ù„ Ø§Ù„Ù…ÙƒØ±ÙˆÙ†Ø© Ø£Ùˆ Ø§Ù„ÙƒØ´Ø±ÙŠ) Ù…Ù† Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©
 function chooseExtraOption(dishName, price) {
-    if (activeTableId === null) {
-        alert('íÑÌì ÇÎÊíÇÑ ÊÑÇÈíÒÉ ÃæáÇğ.');
-        return;
-    }
-
-    currentDish = { name: dishName, price: price };
-    document.getElementById('menu-popup').style.display = 'none';
-    document.getElementById('extra-option-popup').style.display = 'block';
+  currentDish = { name: dishName, price: price };
+  document.getElementById("menu-popup").style.display = "none";
+  document.getElementById("extra-option-popup").style.display = "block";
 }
 
-// ÅÛáÇŞ äÇİĞÉ ÇÎÊíÇÑ ÇáÅÖÇİÇÊ
+// Ø¥ØºÙ„Ø§Ù‚ Ù†Ø§ÙØ°Ø© Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª
 function closeExtraOptionPopup() {
-    document.getElementById('extra-option-popup').style.display = 'none';
+  document.getElementById("extra-option-popup").style.display = "none";
 }
 
-// ÇÎÊíÇÑ äæÚ ÇáãßÑæäÉ ÈÚÏ ÊÍÏíÏ ÇáÅÖÇİÉ
+// Ø§Ø®ØªÙŠØ§Ø± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙƒØ±ÙˆÙ†Ø© Ø¨Ø¹Ø¯ ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ø¥Ø¶Ø§ÙØ©
 function selectPastaType(extra) {
-    selectedExtra = extra;
+  selectedExtra = extra;
+  document.getElementById("extra-option-popup").style.display = "none";
 
-    // ÅĞÇ ßÇäÊ ÇáÅÖÇİÉ "ÈÏæä"¡ áÇ íÊã ÊÚÏíá ÇáÓÚÑ
-    if (selectedExtra !== 'ÈÏæä') {
-        currentDish.price += 20;
-    }
+  if (selectedExtra === "Ø¨Ø¯ÙˆÙ†") {
+    currentDish.price = currentDish.price;
+  } else {
+    currentDish.price += 20; // Ø¥Ø¶Ø§ÙØ© Ø³Ø¹Ø± Ø§Ù„Ø¥Ø¶Ø§ÙØ©
+  }
 
-    document.getElementById('extra-option-popup').style.display = 'none';
-    document.getElementById('pasta-type-popup').style.display = 'block';
+  document.getElementById("pasta-type-popup").style.display = "block";
 }
 
-// ÅÛáÇŞ äÇİĞÉ ÇÎÊíÇÑ äæÚ ÇáãßÑæäÉ
+// Ø¥ØºÙ„Ø§Ù‚ Ù†Ø§ÙØ°Ø© Ø§Ø®ØªÙŠØ§Ø± Ù†ÙˆØ¹ Ø§Ù„Ù…ÙƒØ±ÙˆÙ†Ø©
 function closePastaTypePopup() {
-    document.getElementById('pasta-type-popup').style.display = 'none';
+  document.getElementById("pasta-type-popup").style.display = "none";
 }
 
-// ÅÖÇİÉ ØáÈ ãßÑæäÉ ãÚ äæÚåÇ
+// Ø¥Ø¶Ø§ÙØ© Ø·Ù„Ø¨ Ù…ÙƒØ±ÙˆÙ†Ø© Ù…Ø¹ Ù†ÙˆØ¹Ù‡Ø§
 function addPastaOrder(pastaType) {
-    if (activeTableId !== null && currentDish !== null) {
-        const table = tables.find(t => t.id === activeTableId);
-        if (table) {
-            const orderName = selectedExtra === 'ÈÏæä' 
-                ? `${currentDish.name} (${pastaType})`
-                : `${currentDish.name} + ${selectedExtra} (${pastaType})`;
+  if (
+    activeTableId !== null &&
+    currentDish !== null &&
+    selectedExtra !== null
+  ) {
+    const table = tables.find((t) => t.id === activeTableId);
+    if (table) {
+      const orderName =
+        selectedExtra === "Ø¨Ø¯ÙˆÙ†"
+          ? `${currentDish.name} (${pastaType})`
+          : `${currentDish.name} + ${selectedExtra} (${pastaType})`;
 
-            const finalPrice = currentDish.price;
-            table.orders.push({ name: orderName, price: finalPrice });
-            displayOrders(table);
-        }
-    } else {
-        alert('íÑÌì ÇÎÊíÇÑ ÊÑÇÈíÒÉ æÅÖÇİÉ ÇáØáÈ.');
+      const finalPrice = currentDish.price;
+      table.orders.push({ name: orderName, price: finalPrice });
+      displayOrders(table);
     }
-    currentDish = null;
-    selectedExtra = null;
-    closePastaTypePopup();
+  }
+  currentDish = null;
+  selectedExtra = null;
+  closePastaTypePopup();
 }
 
-// ÅÖÇİÉ ØáÈ Åáì ÇáÊÑÇÈíÒÉ
+// Ø¥Ø¶Ø§ÙØ© Ø·Ù„Ø¨ Ø¥Ù„Ù‰ Ø§Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø©
 function addOrderToActiveTable(name, price) {
-    if (activeTableId !== null) {
-        const table = tables.find(t => t.id === activeTableId);
-        if (table) {
-            table.orders.push({ name, price });
-            displayOrders(table);
-        }
-    } else {
-        alert('íÑÌì ÇÎÊíÇÑ ÊÑÇÈíÒÉ ÃæáÇğ.');
+  if (activeTableId !== null) {
+    const table = tables.find((t) => t.id === activeTableId);
+    if (table) {
+      table.orders.push({ name, price });
+      displayOrders(table);
     }
-    closeMenu();
+  } else {
+    alert("Ù„Ù… ÙŠØªÙ… Ø§Ø®ØªÙŠØ§Ø± ØªØ±Ø§Ø¨ÙŠØ²Ø©.");
+  }
+  closeMenu();
 }
 
-// ÚÑÖ ÇáØáÈÇÊ æÇáÅÌãÇáí İí ÇáÊÑÇÈíÒÉ
+// Ø¹Ø±Ø¶ Ø§Ù„Ø·Ù„Ø¨Ø§Øª ÙˆØ§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ ÙÙŠ Ø§Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø©
 function displayOrders(table) {
-    const ordersDiv = document.getElementById('orders-' + table.id);
-    ordersDiv.innerHTML = '';
-    let total = 0;
+  const ordersDiv = document.getElementById("orders-" + table.id);
+  ordersDiv.innerHTML = "";
+  let total = 0;
 
-    table.orders.forEach((order, index) => {
-        total += order.price;
-        const orderDiv = document.createElement('div');
-        orderDiv.innerHTML = `${order.name} - ${order.price} <button onclick="removeOrder(${table.id}, ${index})">ÍĞİ</button>`;
-        ordersDiv.appendChild(orderDiv);
-    });
-    
-    // ÊÍÏíË ÇáÅÌãÇáí İí æÇÌåÉ ÇáãÓÊÎÏã
-    document.getElementById('total-' + table.id).textContent = 'ÇáÅÌãÇáí: ' + total;
+  table.orders.forEach((order, index) => {
+    total += order.price;
+    const orderDiv = document.createElement("div");
+    orderDiv.innerHTML = `${order.name} - ${order.price} <button onclick="removeOrder(${table.id}, ${index})">Ø­Ø°Ù</button>`;
+    ordersDiv.appendChild(orderDiv);
+  });
+
+  document.getElementById("total-" + table.id).textContent =
+    "Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ: " + total;
 }
 
-// ÅÒÇáÉ ØáÈ ãä ÇáÊÑÇÈíÒÉ
+// Ø¥Ø²Ø§Ù„Ø© Ø·Ù„Ø¨ Ù…Ù† Ø§Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø©
 function removeOrder(tableId, orderIndex) {
-    const table = tables.find(t => t.id === tableId);
-    if (table) {
-        table.orders.splice(orderIndex, 1);
-        displayOrders(table);
-    }
+  const table = tables.find((t) => t.id === tableId);
+  if (table) {
+    table.orders.splice(orderIndex, 1);
+    displayOrders(table);
+  }
 }
 
-// ÅäåÇÁ ÇáÃæÑÏÑ
+// Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„Ø£ÙˆØ±Ø¯Ø± ÙˆÙ†Ù‚Ù„ Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¥Ù„Ù‰ Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„ÙŠÙˆÙ…
 function endOrder(tableId) {
-    const table = tables.find(t => t.id === tableId);
-    if (table) {
-        table.orders = [];
-        displayOrders(table);
-        document.getElementById('total-' + table.id).textContent = 'ÇáÅÌãÇáí: 0';
-    }
+  const table = tables.find((t) => t.id === tableId);
+  if (table) {
+    const total = table.orders.reduce((sum, order) => sum + order.price, 0);
+    dailySales += total; // Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø¥Ù„Ù‰ Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„ÙŠÙˆÙ…
+    document.getElementById("total-sales").textContent = dailySales; // ØªØ­Ø¯ÙŠØ« Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„ÙŠÙˆÙ…
+    table.orders = []; // ØªØµÙÙŠØ± Ø§Ù„Ø£ÙˆØ§Ù…Ø± ÙÙŠ Ø§Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø©
+    displayOrders(table); // ØªØ­Ø¯ÙŠØ« Ø¹Ø±Ø¶ Ø§Ù„Ø£ÙˆØ§Ù…Ø± Ù„Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø©
+    document.getElementById("total-" + table.id).textContent = "Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ: 0"; // ØªØµÙÙŠØ± Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ ÙÙŠ Ø§Ù„ØªØ±Ø§Ø¨ÙŠØ²Ø©
+  }
+}
+
+// Ø¥Ø¹Ø§Ø¯Ø© Ø¶Ø¨Ø· Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„ÙŠÙˆÙ…
+function resetDailySales() {
+  dailySales = 0;
+  document.getElementById("total-sales").textContent = dailySales; // Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø¥Ù„Ù‰ ØµÙØ±
 }

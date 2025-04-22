@@ -1,103 +1,120 @@
 <!DOCTYPE html>
 <html lang="ar">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تطبيق طلبات المطعم</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>إدارة المنيو - بابا عبده</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      background-color: #f0f0f0;
+      padding: 20px;
+    }
+    h2 {
+      color: #ff6600;
+    }
+    .category {
+      background-color: #fff;
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .item {
+      padding: 5px;
+      margin: 5px 0;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 2px;
+      background-color: #ff6600;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    input {
+      padding: 5px;
+      margin: 5px;
+    }
+  </style>
 </head>
-
 <body>
-  <div class="container">
+  <h2>إدارة المنيو</h2>
 
-    <h1>باباعبده</h1>
-
-    <label for="num-tables">عدد الترابيزات:</label>
-    <input type="number" id="num-tables" min="1" max="10" value="1">
-    <button onclick="createTables()">إنشاء الترابيزات</button>
-
-    <div id="tables"></div>
-
-    <ddiviv id="tables"></ddiviv>
-
-    <!-- قائمة الطعام كنافذة منبثقة -->
-    <div id="menu-popup" class="menu-popup">
-      <h2>القائمة</h2>
-      <div class="menu">
-        <!-- قسم المكرونة -->
-        <div class="section">
-          <h3>المكرونة</h3>
-          <button onclick="chooseExtraOption('مكرونة صغير', 25)">مكرونة صغير - 25</button>
-          <button onclick="chooseExtraOption('مكرونة وسط', 30)">مكرونة وسط - 30</button>
-          <button onclick="chooseExtraOption('مكرونة كبير', 35)">مكرونة كبير - 35</button>
-          <button onclick="chooseExtraOption('مكرونة كينج', 45)">مكرونة كينج - 45</button>
-        </div>
-
-        <!-- قسم الكشري -->
-        <div class="section">
-          <h3>الكشري</h3>
-          <button onclick="addOrderToActiveTable('كشري صغير', 25)">كشري صغير - 25</button>
-          <button onclick="addOrderToActiveTable('كشري وسط', 30)">كشري وسط - 30</button>
-          <button onclick="addOrderToActiveTable('كشري كبير', 35)">كشري كبير - 35</button>
-          <button onclick="addOrderToActiveTable('كشري كينج', 45)">كشري كينج - 45</button>
-        </div>
-
-        <!-- قسم الطواجن -->
-        <div class="section">
-          <h3>الطواجن</h3>
-          <button onclick="addOrderToActiveTable('طاجن فراخ', 45)">طاجن فراخ - 45</button>
-          <button onclick="addOrderToActiveTable('طاجن لحمة', 45)">طاجن لحمة - 45</button>
-        </div>
-
-        <!-- قسم الإضافات -->
-        <div class="section">
-          <h3>الإضافات والمشروبات</h3>
-          <button onclick="addOrderToActiveTable('كبدة', 20)">كبدة - 20</button>
-          <button onclick="addOrderToActiveTable('سجق', 20)">سجق - 20</button>
-          <button onclick="addOrderToActiveTable('مكس', 20)">مكس - 20</button>
-          <button onclick="addOrderToActiveTable('صلصة', 10)">صلصة - 10</button>
-          <button onclick="addOrderToActiveTable('تقلية', 10)">تقلية - 10</button>
-          <button onclick="addOrderToActiveTable('عدس', 10)">عدس - 10</button>
-          <button onclick="addOrderToActiveTable('مشروب غازي', 15)">مشروب غازي - 15</button>
-          <button onclick="addOrderToActiveTable('أرز بلبن', 13)">أرز بلبن - 13</button>
-          <button onclick="addOrderToActiveTable('مياه', 5)">مياه - 5</button>
-        </div>
-      </div>
-      <button onclick="closeMenu()">إغلاق</button>
-    </div>
-
-    <!-- نافذة اختيار إضافات كبدة/سجق/مكس/بدون -->
-    <div id="extra-option-popup" class="menu-popup">
-      <h3>اختر إضافة:</h3>
-      <button onclick="selectPastaType('كبدة')">كبدة</button>
-      <button onclick="selectPastaType('سجق')">سجق</button>
-      <button onclick="selectPastaType('مكس')">مكس</button>
-      <button onclick="selectPastaType('بدون')">بدون</button>
-      <button onclick="closeExtraOptionPopup()">إلغاء</button>
-    </div>
-
-    <!-- نافذة اختيار نوع المكرونة -->
-    <div id="pasta-type-popup" class="menu-popup">
-      <h3>اختر نوع المكرونة:</h3>
-      <button onclick="addPastaOrder('اسباجتي')">اسباجتي</button>
-      <button onclick="addPastaOrder('مقصوصة')">مقصوصة</button>
-      <button onclick="addPastaOrder('مشكل')">مشكل</button>
-      <button onclick="closePastaTypePopup()">إلغاء</button>
-    </div>
+  <div>
+    <input type="text" id="newCategoryName" placeholder="اسم القسم">
+    <button onclick="addCategory()">إضافة قسم</button>
   </div>
 
-  <!-- أسفل التطبيق -->
+  <div id="menuContainer"></div>
 
-  <footer class="footer">
+  <script>
+    let menu = JSON.parse(localStorage.getItem("menu")) || [];
 
-    <p>التطبيق تحت إشراف: <span>محمد وليد سعد</span></p>
+    function saveMenu() {
+      localStorage.setItem("menu", JSON.stringify(menu));
+    }
 
-  </footer>
+    function addCategory() {
+      const name = document.getElementById("newCategoryName").value;
+      if (!name) return;
+      menu.push({ name, items: [] });
+      saveMenu();
+      displayMenu();
+      document.getElementById("newCategoryName").value = "";
+    }
 
-  </div>
+    function addItemToCategory(index) {
+      const itemName = prompt("اسم الصنف:");
+      const itemPrice = prompt("السعر:");
+      if (!itemName || !itemPrice || isNaN(itemPrice)) return;
+      const options = prompt("إضافات (افصلها بفاصلة):");
+      const optionList = options ? options.split(',') : [];
+      menu[index].items.push({ name: itemName, price: parseFloat(itemPrice), options: optionList });
+      saveMenu();
+      displayMenu();
+    }
 
-  <script src="script.js"></script>
+    function removeItem(categoryIndex, itemIndex) {
+      menu[categoryIndex].items.splice(itemIndex, 1);
+      saveMenu();
+      displayMenu();
+    }
+
+    function displayMenu() {
+      const container = document.getElementById("menuContainer");
+      container.innerHTML = "";
+      menu.forEach((category, index) => {
+        const categoryDiv = document.createElement("div");
+        categoryDiv.classList.add("category");
+        categoryDiv.innerHTML = `<h3>${category.name}</h3>`;
+        category.items.forEach((item, i) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.classList.add("item");
+          itemDiv.innerHTML = `
+            <span>${item.name} - ${item.price} جنيه</span>
+            <button onclick="removeItem(${index}, ${i})">❌</button>`;
+          categoryDiv.appendChild(itemDiv);
+        });
+        const addButton = document.createElement("button");
+        addButton.textContent = "إضافة صنف";
+        addButton.onclick = () => addItemToCategory(index);
+        categoryDiv.appendChild(addButton);
+        container.appendChild(categoryDiv);
+      });
+    }
+
+    displayMenu();
+  </script>
 </body>
-
 </html>

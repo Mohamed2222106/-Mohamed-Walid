@@ -3,118 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>إدارة المنيو - بابا عبده</title>
+  <title>بابا عبده</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      text-align: center;
       direction: rtl;
-      background-color: #f0f0f0;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f8f8;
     }
-    h2 {
-      color: #ff6600;
-    }
-    .category {
-      background-color: #fff;
-      margin-bottom: 20px;
+    header {
+      background: #ff6600;
+      color: white;
       padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      font-size: 24px;
+      position: relative;
     }
-    .item {
-      padding: 5px;
-      margin: 5px 0;
-      background-color: #f9f9f9;
-      border-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .small-text {
+      position: absolute;
+      left: 10px;
+      top: 5px;
+      font-size: 12px;
+      color: white;
     }
     button {
-      padding: 5px 10px;
-      margin: 2px;
-      background-color: #ff6600;
+      padding: 10px 20px;
+      margin: 5px;
+      background: red;
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
+      border-radius: 5px;
     }
     button:hover {
-      opacity: 0.9;
+      opacity: 0.8;
     }
-    input {
-      padding: 5px;
-      margin: 5px;
+    #tablesContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .table {
+      width: 100px;
+      height: 100px;
+      background: white;
+      border: 2px solid #ff6600;
+      margin: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <h2>إدارة المنيو</h2>
-
-  <div>
-    <input type="text" id="newCategoryName" placeholder="اسم القسم">
-    <button onclick="addCategory()">إضافة قسم</button>
-  </div>
-
-  <div id="menuContainer"></div>
+  <header>
+    <h1>بابا عبده</h1>
+    <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
+  </header>
+  <main id="main-content">
+    <button onclick="createTables()">إنشاء ترابيزات</button>
+    <button onclick="location.href='menu.html'">إدارة المنيو</button>
+    <div id="tablesContainer"></div>
+  </main>
 
   <script>
-    let menu = JSON.parse(localStorage.getItem("menu")) || [];
-
-    function saveMenu() {
-      localStorage.setItem("menu", JSON.stringify(menu));
+    function createTables() {
+      let num = prompt("كم عدد الترابيزات؟");
+      if (!num || isNaN(num) || num <= 0) return;
+      localStorage.setItem("numTables", num);
+      loadTables();
     }
 
-    function addCategory() {
-      const name = document.getElementById("newCategoryName").value;
-      if (!name) return;
-      menu.push({ name, items: [] });
-      saveMenu();
-      displayMenu();
-      document.getElementById("newCategoryName").value = "";
-    }
-
-    function addItemToCategory(index) {
-      const itemName = prompt("اسم الصنف:");
-      const itemPrice = prompt("السعر:");
-      if (!itemName || !itemPrice || isNaN(itemPrice)) return;
-      const options = prompt("إضافات (افصلها بفاصلة):");
-      const optionList = options ? options.split(',') : [];
-      menu[index].items.push({ name: itemName, price: parseFloat(itemPrice), options: optionList });
-      saveMenu();
-      displayMenu();
-    }
-
-    function removeItem(categoryIndex, itemIndex) {
-      menu[categoryIndex].items.splice(itemIndex, 1);
-      saveMenu();
-      displayMenu();
-    }
-
-    function displayMenu() {
-      const container = document.getElementById("menuContainer");
+    function loadTables() {
+      let num = localStorage.getItem("numTables") || 0;
+      let container = document.getElementById("tablesContainer");
       container.innerHTML = "";
-      menu.forEach((category, index) => {
-        const categoryDiv = document.createElement("div");
-        categoryDiv.classList.add("category");
-        categoryDiv.innerHTML = `<h3>${category.name}</h3>`;
-        category.items.forEach((item, i) => {
-          const itemDiv = document.createElement("div");
-          itemDiv.classList.add("item");
-          itemDiv.innerHTML = `
-            <span>${item.name} - ${item.price} جنيه</span>
-            <button onclick="removeItem(${index}, ${i})">❌</button>`;
-          categoryDiv.appendChild(itemDiv);
+      for (let i = 1; i <= num; i++) {
+        let table = document.createElement("div");
+        table.classList.add("table");
+        table.textContent = `طاولة ${i}`;
+        table.setAttribute("data-table", i);
+        table.addEventListener("click", () => {
+          localStorage.setItem("currentTable", i);
+          window.location.href = 'orders.html';
         });
-        const addButton = document.createElement("button");
-        addButton.textContent = "إضافة صنف";
-        addButton.onclick = () => addItemToCategory(index);
-        categoryDiv.appendChild(addButton);
-        container.appendChild(categoryDiv);
-      });
+        container.appendChild(table);
+      }
     }
 
-    displayMenu();
+    loadTables();
   </script>
 </body>
 </html>

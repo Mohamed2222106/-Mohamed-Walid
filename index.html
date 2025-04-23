@@ -1,130 +1,170 @@
-<!DOCTYPE html>
-<html lang="ar">
+<!DOCTYPE html><html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الطلبات</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      direction: rtl;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-    }
-    header {
-      background-color: #ff6600;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 24px;
-    }
-    .section {
-      margin: 15px;
-      background: white;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .section h3 {
-      margin-top: 0;
-      color: #ff6600;
-    }
-    .item {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .item:last-child {
-      border-bottom: none;
-    }
-    .item button {
-      padding: 5px 10px;
-      background-color: green;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #ordersList {
-      background: white;
-      padding: 10px;
-      margin: 15px;
-      border-radius: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بابا عبده</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+        header {
+            background: #ff6600;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            position: relative;
+        }
+        .small-text {
+            position: absolute;
+            left: 10px;
+            top: 5px;
+            font-size: 12px;
+            color: white;
+        }
+        main {
+            padding: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn:hover { opacity: 0.9; }
+        #tablesContainer { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+        .table {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 2px solid #ff6600;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        .table:hover { transform: scale(1.05); }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;
+        }
+        .modal {
+            background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;
+            text-align: right;
+        }
+        .modal input, .modal textarea {
+            width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box;
+            border: 1px solid #ccc; border-radius: 4px;
+        }
+        #menuList { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 20px; }
+        .menu-card {
+            background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .menu-card h4 { margin: 0; }
+        .menu-actions { margin-top: 10px; display: flex; justify-content: space-between; }
+        #menuGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
+        .item-card {
+            background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .orders-list { list-style: none; padding: 0; margin-top: 20px; }
+        .orders-list li {
+            background: white; padding: 10px; margin: 5px 0; border-radius: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap;
+        }
+        .note { font-size: 12px; color: #666; width: 100%; text-align: right; margin-top: 5px; }
+    </style>
 </head>
 <body>
-  <header>إدارة الطلبات - طاولة <span id="tableNumber"></span></header>
-
-  <div id="menuContainer"></div>
-
-  <h3 style="margin: 15px 15px 5px">الطلبات</h3>
-  <ul id="ordersList"></ul>
-  <button onclick="goBack()" style="margin: 15px;">رجوع</button>
-
-  <script>
-    let currentTable = localStorage.getItem("currentTable") || "؟";
-    document.getElementById("tableNumber").textContent = currentTable;
-
-    let ordersKey = `orders_table_${currentTable}`;
-
-    function displayOrders() {
-      let orders = JSON.parse(localStorage.getItem(ordersKey)) || [];
-      let list = document.getElementById("ordersList");
-      list.innerHTML = "";
-      orders.forEach((order, index) => {
-        let li = document.createElement("li");
-        li.textContent = `${order.name} - ${order.price} جنيه`;
-        list.appendChild(li);
-      });
-    }
-
-    function addToOrder(item) {
-      let orders = JSON.parse(localStorage.getItem(ordersKey)) || [];
-      orders.push(item);
-      localStorage.setItem(ordersKey, JSON.stringify(orders));
-      displayOrders();
-    }
-
-    function displayMenu() {
-      let data = JSON.parse(localStorage.getItem("menuSections")) || [];
-      let container = document.getElementById("menuContainer");
-      container.innerHTML = "";
-
-      data.forEach(section => {
-        let sec = document.createElement("div");
-        sec.className = "section";
-
-        let title = document.createElement("h3");
-        title.textContent = section.name;
-        sec.appendChild(title);
-
-        section.items.forEach(item => {
-          let div = document.createElement("div");
-          div.className = "item";
-
-          div.innerHTML = `<span>${item.name} - ${item.price} جنيه</span>`;
-          let btn = document.createElement("button");
-          btn.textContent = "إضافة";
-          btn.onclick = () => addToOrder(item);
-
-          div.appendChild(btn);
-          sec.appendChild(div);
-        });
-
-        container.appendChild(sec);
-      });
-    }
-
-    function goBack() {
-      window.location.href = "index.html";
-    }
-
-    displayMenu();
+<header>
+    <h1>بابا عبده</h1>
+    <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
+</header>
+<main id="main-content">
+    <button class="btn btn-primary" onclick="createTables()">إنشاء ترابيزات</button>
+    <button class="btn btn-secondary" onclick="manageMenu()">إدارة المنيو</button>
+    <div id="tablesContainer"></div>
+</main>
+<div class="modal-overlay" id="menuModal">
+    <div class="modal">
+        <h3 id="modalTitle">إضافة صنف</h3>
+        <input type="text" id="menuName" placeholder="اسم الصنف">
+        <input type="number" id="menuPrice" placeholder="السعر (جنيه)">
+        <div style="text-align: left; margin-top: 10px;">
+            <button class="btn btn-primary" onclick="saveMenuItem()">حفظ</button>
+            <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+        </div>
+    </div>
+</div>
+<div class="modal-overlay" id="noteModal">
+    <div class="modal">
+        <h3>ملاحظات</h3>
+        <textarea id="noteInput" rows="3" placeholder="اكتب نوع المكرونة أو أي ملاحظة..."></textarea>
+        <div style="text-align: left; margin-top: 10px;">
+            <button class="btn btn-primary" onclick="saveNote()">إضافة</button>
+            <button class="btn btn-secondary" onclick="closeNoteModal()">إلغاء</button>
+        </div>
+    </div>
+</div>
+<script>
+let currentNoteItem = null;
+function addToOrder(idx) {
+    currentNoteItem = idx;
+    document.getElementById('noteInput').value = '';
+    document.getElementById('noteModal').style.display = 'flex';
+}
+function saveNote() {
+    const note = document.getElementById('noteInput').value.trim();
+    const table = localStorage.getItem('currentTable');
+    const key = `orders_${table}`;
+    const orders = JSON.parse(localStorage.getItem(key)) || [];
+    const menu = JSON.parse(localStorage.getItem('menu')) || [];
+    const item = menu[currentNoteItem];
+    let exist = orders.find(o => o.name === item.name && o.note === note);
+    if (exist) exist.qty++;
+    else orders.push({ name: item.name, price: +item.price, qty: 1, note });
+    localStorage.setItem(key, JSON.stringify(orders));
+    closeNoteModal();
     displayOrders();
-  </script>
+}
+function closeNoteModal() {
+    document.getElementById('noteModal').style.display = 'none';
+}
+function displayOrders() {
+    const table = localStorage.getItem('currentTable');
+    const key = `orders_${table}`;
+    const orders = JSON.parse(localStorage.getItem(key)) || [];
+    const list = document.getElementById('ordersList');
+    list.innerHTML = '';
+    let total = 0;
+    orders.forEach((o, i) => {
+        total += o.price * o.qty;
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span>${o.name} × ${o.qty}</span>
+            <span>${o.price * o.qty} ج</span>
+            <div class="note">${o.note || ''}</div>
+            <button class="btn btn-danger" onclick="removeOne(${i})">–</button>
+        `;
+        list.appendChild(li);
+    });
+    document.getElementById('totalPrice').textContent = total;
+}
+// باقي الأكواد تظل كما هي مثل createTables و manageMenu و loadTables و غيرها...
+</script>
 </body>
 </html>

@@ -1,135 +1,309 @@
-<!DOCTYPE html><html lang="ar">
+<!doctype html>
+
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بابا عبده</title>
-    <style>
-        body {font-family: Arial, sans-serif; direction: rtl; margin:0; padding:0; background:#f8f8f8;}
-        header {background:#ff6600; color:white; padding:15px; text-align:center; position:relative;}
-        .small-text {position:absolute; top:5px; left:10px; font-size:12px; color:white;}
-        main {padding:20px;}
-        .btn {padding:8px 16px; margin:5px; border:none; border-radius:5px; cursor:pointer; font-size:14px;}
-        .btn-primary {background:#28a745; color:white;}
-        .btn-secondary {background:#6c757d; color:white;}
-        .btn-danger {background:#dc3545; color:white;}
-        .btn:hover {opacity:0.9;}
-        #tablesContainer {display:flex; flex-wrap:wrap; justify-content:center; margin-top:20px;}
-        .table {width:100px; height:100px; background:white; border:2px solid #ff6600; margin:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:8px; transition:transform .2s; font-weight:bold;}
-        .table:hover {transform:scale(1.05);}
-        .modal-overlay {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center;}
-        .modal {background:white; padding:20px; border-radius:8px; width:90%; max-width:400px; text-align:right;}
-        .modal input, .modal textarea {width:100%; padding:8px; margin:5px 0; box-sizing:border-box; border:1px solid #ccc; border-radius:4px;}
-        /* Menu Management */
-        #menuContainer {margin-top:20px;}
-        .section {background:white; padding:15px; margin-bottom:20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);}
-        .section h3 {margin-top:0; color:#ff6600;}
-        .item {padding:8px; margin:5px 0; background:#fafafa; border-radius:5px; display:flex; justify-content:space-between; align-items:center;}
-        .item button {margin-left:5px;}
-        .add-form {display:none; margin-top:10px;}
-        .add-form input, .add-form textarea {margin-bottom:8px;}
-        /* Orders Dropdown */
-        .dropdown-container {margin-top:20px;}
-        #categoryDropdown {width:100%; padding:8px; font-size:14px; border-radius:5px; border:1px solid #ccc;}
-        .items-grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-top:10px;}
-        .card {background:white; padding:10px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); display:flex; flex-direction:column; justify-content:space-between;}
-        .orders-list {list-style:none; padding:0; margin-top:20px;}
-        .orders-list li {background:white; padding:10px; margin:5px 0; border-radius:5px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;}
-        .note {width:100%; font-size:12px; color:#555; text-align:right; margin-top:5px;}
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Kick Duo — Phase 1 (Prototype)</title>
+  <style>
+    /* Basic reset */
+    html,body{height:100%;margin:0;background:#0b6623;font-family:Arial,\'Noto Naskh Arabic\',sans-serif}
+    #game-container{width:100%;height:100%;display:block;position:relative;overflow:hidden}/* Left control panel (transparent circular buttons) */
+.controls-left{position:absolute;left:12px;bottom:18px;display:flex;flex-direction:column;gap:12px;z-index:12}
+.ctrl-btn{width:64px;height:64px;border-radius:50%;backdrop-filter:blur(4px);background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.35);touch-action:none}
+.ctrl-btn img{width:36px;height:36px;opacity:0.95}
+.ctrl-small{width:52px;height:52px}
+
+/* Top UI: score/time/names */
+.top-ui{position:absolute;left:50%;transform:translateX(-50%);top:8px;z-index:15;display:flex;gap:20px;align-items:center;background:rgba(0,0,0,0.25);padding:6px 12px;border-radius:12px;color:#fff}
+.team-name{min-width:110px;text-align:center;font-weight:600}
+
+/* Joystick area (right) */
+.joystick-area{position:absolute;right:12px;bottom:12px;width:38vw;max-width:340px;height:38vw;max-height:340px;border-radius:20px;z-index:11;touch-action:none}
+/* joystick visuals handled inside canvas overlay */
+
+/* Responsive tweak for tablets/landscape */
+@media(min-width:900px){.ctrl-btn{width:80px;height:80px}.ctrl-btn img{width:44px;height:44px}.ctrl-small{width:64px;height:64px}}
+
+/* Settings modal simple */
+.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:18px;border-radius:10px;z-index:30;display:none;width:92%;max-width:520px}
+.modal input{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:6px}
+.modal button{padding:10px 12px;margin-top:8px}
+
+  </style>
 </head>
 <body>
-<header>
-    <h1>بابا عبده</h1>
-    <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
-</header>
-<main id="main-content">
-    <button class="btn btn-primary" onclick="createTables()">إنشاء ترابيزات</button>
-    <button class="btn btn-secondary" onclick="manageMenu()">إدارة المنيو</button>
-    <div id="tablesContainer"></div>
-</main><!-- Modals --><div class="modal-overlay" id="noteModal">
-    <div class="modal">
-        <h3>إضافة ملاحظة</h3>
-        <textarea id="noteInput" rows="3" placeholder="اكتب الملاحظة..."></textarea>
-        <div style="text-align:left; margin-top:10px;">
-            <button class="btn btn-primary" onclick="saveNote()">إضافة</button>
-            <button class="btn btn-secondary" onclick="closeNoteModal()">إلغاء</button>
-        </div>
+  <div id="game-container"></div>  <!-- Top UI -->  <div class="top-ui" id="topUi">
+    <div class="team-name" id="teamAname">Team A</div>
+    <div id="score">0 - 0</div>
+    <div class="team-name" id="teamBname">Team B</div>
+  </div>  <!-- Left buttons (transparent) -->  <div class="controls-left" id="controlsLeft">
+    <div class="ctrl-btn" id="skillBtn" title="Skill / Sprint">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='white' d='M12 2L15 8L22 9L17 14L18 21L12 18L6 21L7 14L2 9L9 8Z'/></svg>" alt="skill">
     </div>
-</div><script>
-// Data structure: menuSections = [{ name: 'قسم', items: [{ name, price }] }]
-function getMenu() { return JSON.parse(localStorage.getItem('menuSections')) || []; }
-function saveMenu(sections) { localStorage.setItem('menuSections', JSON.stringify(sections)); }
+    <div class="ctrl-btn" id="passBtn" title="Ground Pass">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='white' d='M2 12h14v2H2zM18 6h4v12h-4z'/></svg>" alt="pass">
+    </div>
+    <div class="ctrl-btn" id="throughBtn" title="Through / Loft pass">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='white' d='M2 12h12v2H2zM18 4h4v12h-4z'/></svg>" alt="through">
+    </div>
+    <div class="ctrl-btn ctrl-small" id="shootBtn" title="Shoot">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='8' fill='white'/></svg>" alt="shoot">
+    </div>
+  </div>  <!-- Joystick container (right) -->  <div class="joystick-area" id="joyArea"></div>  <!-- Simple settings modal for editing names -->  <div class="modal" id="modalSettings">
+    <h3>إعداد أسماء الفريقين</h3>
+    <label>اسم الفريق A (اللاعب على اليسار)</label>
+    <input id="nameA" placeholder="مثال: ابراهيم">
+    <label>اسم الفريق B (اللاعب على اليمين)</label>
+    <input id="nameB" placeholder="مثال: كريم">
+    <button id="saveNames">حفظ الأسماء</button>
+    <button id="closeModal">إغلاق</button>
+  </div>  <!-- Phaser + game script -->  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>  <script>
+  // -----------------------
+  // Kick Duo Phase 1 Prototype
+  // - Isometric-like field background
+  // - Two controllable players (1v1 same device)
+  // - One analog joystick area on the right (fixed)
+  // - Transparent action buttons on the left
+  // - Names editable and saved to localStorage
+  // - Placeholder graphics drawn with Phaser's graphics (can be replaced with sprites in /assets)
+  // -----------------------
 
-// -- Home --
-function createTables() {
-    let num = prompt('كم عدد الترابيزات؟'); if(!num||isNaN(num)||num<=0) return;
-    localStorage.setItem('numTables', num); loadTables();
-}
-function loadTables() {
-    let num = +localStorage.getItem('numTables')||0;
-    let c = document.getElementById('tablesContainer'); c.innerHTML='';
-    for(let i=1;i<=num;i++){ let d=document.createElement('div'); d.className='table'; d.textContent=`طاولة ${i}`; d.onclick=()=>openTable(i); c.appendChild(d);}    
-}
+  // helper: load names from localStorage
+  const STORAGE_KEY = 'kickduo_player_names_v1';
+  function loadNames(){
+    try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw);}catch(e){}
+    return {a:'Player A', b:'Player B'}
+  }
+  function saveNames(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
 
-// -- Menu Management --
-function manageMenu() {
-    let main = document.getElementById('main-content');
-    main.innerHTML = `
-        <h2>إدارة المنيو</h2>
-        <div><input type="text" id="newCategory" placeholder="اسم القسم"><button class="btn btn-primary" onclick="addCategory()">إضافة قسم</button></div>
-        <div id="menuContainer"></div>
-        <button class="btn btn-secondary" onclick="loadHome()">رجوع</button>
-    `;
-    renderMenu();
-}
-function loadHome(){ document.getElementById('main-content').innerHTML=`<button class="btn btn-primary" onclick="createTables()">إنشاء ترابيزات</button><button class="btn btn-secondary" onclick="manageMenu()">إدارة المنيو</button><div id="tablesContainer"></div>`; loadTables(); }
+  // attach settings modal handlers
+  const modal = document.getElementById('modalSettings');
+  document.getElementById('teamAname').addEventListener('click', ()=>{ modal.style.display='block'; document.getElementById('nameA').value=names.a })
+  document.getElementById('teamBname').addEventListener('click', ()=>{ modal.style.display='block'; document.getElementById('nameB').value=names.b })
+  document.getElementById('closeModal').addEventListener('click', ()=> modal.style.display='none')
+  document.getElementById('saveNames').addEventListener('click', ()=>{
+    names.a = document.getElementById('nameA').value || 'Player A';
+    names.b = document.getElementById('nameB').value || 'Player B';
+    saveNames(names); modal.style.display='none'; updateTopNames();
+  })
 
-function renderMenu() {
-    let c = document.getElementById('menuContainer'); c.innerHTML='';
-    let sections = getMenu();
-    sections.forEach((sec,ci)=>{
-        let s = document.createElement('div'); s.className='section';
-        s.innerHTML = `<h3>${sec.name}</h3>`;
-        sec.items.forEach((it,ii)=>{
-            let itDiv = document.createElement('div'); itDiv.className='item';
-            itDiv.innerHTML = `<span>${it.name} - ${it.price} ج</span><button class="btn btn-danger" onclick="removeItem(${ci},${ii})">حذف</button>`;
-            s.appendChild(itDiv);
-        });
-        s.innerHTML += `<button class="btn btn-primary" onclick="showAddItemForm(${ci})">إضافة صنف</button><button class="btn btn-danger" onclick="removeCategory(${ci})">حذف قسم</button><div id="addForm${ci}" class="add-form"></div>`;
-        c.appendChild(s);
+  let names = loadNames();
+  function updateTopNames(){ document.getElementById('teamAname').textContent = names.a; document.getElementById('teamBname').textContent = names.b }
+  updateTopNames();
+
+  // Game config
+  const config = {
+    type: Phaser.AUTO,
+    parent: 'game-container',
+    scale: {
+      mode: Phaser.Scale.RESIZE,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
+    backgroundColor: 0x0b6623,
+    scene: {
+      preload: preload,
+      create: create,
+      update: update
+    }
+  };
+
+  const game = new Phaser.Game(config);
+  let cursors;
+  let playerA, playerB, ball;
+  let selectedPlayer = null; // the player currently controlled
+  let pointerDown = false;
+
+  function preload(){
+    // No external assets required for prototype. If you want to use real images,
+    // place them in an /assets folder and load here, e.g. this.load.image('pitch','assets/pitch.png')
+  }
+
+  function create(){
+    const scene = this;
+    const w = this.scale.width; const h = this.scale.height;
+
+    // Draw simple isometric-like pitch using graphics
+    const g = this.add.graphics();
+    // base grass
+    g.fillStyle(0x1e8b34, 1);
+    const pad = 40;
+    g.fillRect(pad, pad+20, w-2*pad, h-2*pad-60);
+    // midline / center circle
+    g.lineStyle(4, 0xe6f2e6, 0.65);
+    g.strokeRect(pad+6, pad+26, w-2*pad-12, h-2*pad-72);
+    // center circle
+    g.strokeCircle(w/2, h/2, 56);
+
+    // make the pitch a bit skewed visually using a simple overlay shadow to mimic depth
+    const s = this.add.graphics();
+    s.fillStyle(0x000000, 0.06);
+    s.fillEllipse(w/2, h - 90, w*0.9, 120);
+
+    // create two players as containers with a circle and name text above
+    playerA = createPlayer(scene, w*0.3, h/2, 0xffcc00, names.a);
+    playerB = createPlayer(scene, w*0.7, h/2, 0x2ca6ff, names.b);
+
+    // ball
+    ball = this.add.circle(w/2, h/2 + 40, 10, 0xffffff);
+    this.physics.add.existing(ball);
+    ball.body.setCollideWorldBounds(true, 0.9);
+    ball.body.setBounce(0.5,0.5);
+
+    // enable physics for players (simple body circle)
+    this.physics.world.enable([playerA.sprite, playerB.sprite]);
+    playerA.sprite.body.setCircle(20); playerB.sprite.body.setCircle(20);
+    playerA.sprite.body.setCollideWorldBounds(true);
+    playerB.sprite.body.setCollideWorldBounds(true);
+
+    // collisions between players and ball
+    this.physics.add.collider(playerA.sprite, ball, playerBallCollision);
+    this.physics.add.collider(playerB.sprite, ball, playerBallCollision);
+
+    // default: selected player is playerA
+    selectedPlayer = playerA;
+
+    // Simple UI: clicking a player switches control
+    playerA.sprite.setInteractive(new Phaser.Geom.Circle(0,0,1), Phaser.Geom.Circle.Contains);
+    playerB.sprite.setInteractive(new Phaser.Geom.Circle(0,0,1), Phaser.Geom.Circle.Contains);
+    playerA.sprite.on('pointerdown', ()=>{ selectedPlayer = playerA; highlightSelected(scene) });
+    playerB.sprite.on('pointerdown', ()=>{ selectedPlayer = playerB; highlightSelected(scene) });
+
+    highlightSelected(scene);
+
+    // Joystick implementation (custom) inside joyArea element
+    setupJoystick(scene);
+
+    // Buttons wiring
+    document.getElementById('passBtn').addEventListener('pointerdown', ()=> doPass('ground'));
+    // through with drag detection
+    const throughBtn = document.getElementById('throughBtn');
+    let throughPointerStartY = null;
+    throughBtn.addEventListener('pointerdown', (e)=>{ throughPointerStartY = e.clientY });
+    throughBtn.addEventListener('pointerup', (e)=>{
+      const delta = throughPointerStartY ? (throughPointerStartY - e.clientY) : 0;
+      if(delta > 30) doPass('long'); else doPass('through');
+      throughPointerStartY = null;
     });
-}
-function addCategory(){ let n = document.getElementById('newCategory').value.trim(); if(!n) return; let m=getMenu(); m.push({name:n,items:[]}); saveMenu(m); document.getElementById('newCategory').value=''; renderMenu(); }
-function removeCategory(ci){ if(!confirm('حذف القسم؟')) return; let m=getMenu(); m.splice(ci,1); saveMenu(m); renderMenu(); }
-function showAddItemForm(ci){ let f = document.getElementById(`addForm${ci}`); f.innerHTML = `
-    <input type="text" id="itemName${ci}" placeholder="اسم الصنف">
-    <input type="number" id="itemPrice${ci}" placeholder="السعر">
-    <button class="btn btn-primary" onclick="addItem(${ci})">إضافة</button>
-`; f.style.display='block'; }
-function addItem(ci){ let m=getMenu(); let n=document.getElementById(`itemName${ci}`).value.trim(); let p=parseFloat(document.getElementById(`itemPrice${ci}`).value); if(!n||isNaN(p)) return; m[ci].items.push({name:n,price:p}); saveMenu(m); renderMenu(); }
-function removeItem(ci,ii){ if(!confirm('حذف الصنف؟')) return; let m=getMenu(); m[ci].items.splice(ii,1); saveMenu(m); renderMenu(); }
 
-// -- Orders with Dropdown --
-let currentNoteItem=null;
-function openTable(num){ localStorage.setItem('currentTable',num); let main=document.getElementById('main-content'); main.innerHTML=`
-    <h2>إدارة الطلبات – طاولة ${num}</h2>
-    <div class="dropdown-container"><select id="categoryDropdown"></select></div>
-    <div class="items-grid" id="menuGrid"></div>
-    <h3>الطلبات</h3><ul class="orders-list" id="ordersList"></ul>
-    <div style="text-align:right;font-weight:bold; margin-top:10px;">الإجمالي: <span id="totalPrice">0</span> ج</div>
-    <button class="btn btn-danger" onclick="clearOrders()">حذف الكل</button>
-    <button class="btn btn-secondary" onclick="loadHome()">رجوع</button>
-`; initDropdown(); displayOrders(); }
-function initDropdown(){ let dd=document.getElementById('categoryDropdown'); dd.innerHTML=''; getMenu().forEach((s,i)=>{ let o=document.createElement('option'); o.value=i; o.textContent=s.name; dd.appendChild(o); }); dd.onchange=renderItems; if(dd.options.length) renderItems(); }
-function renderItems(){ let idx=+document.getElementById('categoryDropdown').value; let items=getMenu()[idx].items; let g=document.getElementById('menuGrid'); g.innerHTML=''; items.forEach(it=>{ let c=document.createElement('div'); c.className='card'; c.innerHTML=`<h4>${it.name}</h4><div class="price">${it.price} ج</div>`; let b=document.createElement('button'); b.textContent='+'; b.onclick=()=>{currentNoteItem=it; openNoteModal();}; c.appendChild(b); g.appendChild(c); }); }
-function openNoteModal(){ document.getElementById('noteInput').value=''; document.getElementById('noteModal').style.display='flex'; }
-function closeNoteModal(){ document.getElementById('noteModal').style.display='none'; }
-function saveNote(){ let note=document.getElementById('noteInput').value.trim(); let t=localStorage.getItem('currentTable'), k=`orders_${t}`; let ord=JSON.parse(localStorage.getItem(k))||[]; let it=currentNoteItem; let ex=ord.find(o=>o.name===it.name && o.note===note); if(ex) ex.qty++; else ord.push({name:it.name,price:it.price,qty:1,note}); localStorage.setItem(k,JSON.stringify(ord)); closeNoteModal(); displayOrders(); }
-function displayOrders(){ let t=localStorage.getItem('currentTable'), k=`orders_${t}`, ord=JSON.parse(localStorage.getItem(k))||[]; let lst=document.getElementById('ordersList'); lst.innerHTML=''; let tot=0; ord.forEach((o,i)=>{ tot+=o.price*o.qty; let li=document.createElement('li'); li.innerHTML=`<span>${o.name} × ${o.qty}</span><span>${o.price*o.qty} ج</span><div class="note">${o.note||''}</div><button class="btn btn-danger" onclick="removeOne(${i})">–</button>`; lst.appendChild(li); }); document.getElementById('totalPrice').textContent=tot; }
-function removeOne(i){ let t=localStorage.getItem('currentTable'), k=`orders_${t}`, ord=JSON.parse(localStorage.getItem(k))||[]; if(ord[i].qty>1) ord[i].qty--; else ord.splice(i,1); localStorage.setItem(k,JSON.stringify(ord)); displayOrders(); }
-function clearOrders(){ if(confirm('حذف جميع الطلبات؟')){ let t=localStorage.getItem('currentTable'); localStorage.removeItem(`orders_${t}`); displayOrders(); }}
+    document.getElementById('shootBtn').addEventListener('pointerdown', ()=> doShoot());
 
-// Initialize
-loadTables();
-</script></body>
+    // skill button: short press sprint, long drag up -> skill
+    const skillBtn = document.getElementById('skillBtn');
+    let skillStartY = null;
+    skillBtn.addEventListener('pointerdown', (e)=>{ skillStartY = e.clientY; selectedPlayer.isSprinting = true });
+    skillBtn.addEventListener('pointerup', (e)=>{
+      const delta = skillStartY ? (skillStartY - e.clientY) : 0;
+      if(delta > 30) performSkill(selectedPlayer); else selectedPlayer.isSprinting = false;
+      skillStartY = null;
+    });
+
+    // Responsive: update joystick overlay visuals on resize
+    this.scale.on('resize', ()=>{ updateJoystickPosition(); })
+  }
+
+  // create a simple player container (circle + name)
+  function createPlayer(scene,x,y,color,name){
+    const container = scene.add.container(x,y);
+    const sprite = scene.add.circle(0,0,20,color);
+    const head = scene.add.circle(0,-8,7,0x222222);
+    const label = scene.add.text(0,-40,name,{font:'14px Arial',color:'#fff'}).setOrigin(0.5);
+    container.add([sprite,head,label]);
+    // attach references
+    const obj = {container, sprite, head, label, name, speed:160, isSprinting:false};
+    return obj;
+  }
+
+  function highlightSelected(scene){
+    // small visual: scale selected player
+    [playerA, playerB].forEach(p=> p.container.setScale(1));
+    selectedPlayer.container.setScale(1.12);
+  }
+
+  function playerBallCollision(playerSprite, ballSprite){
+    // simple push the ball a little in direction of player's velocity
+    const vx = playerSprite.body.velocity.x; const vy = playerSprite.body.velocity.y;
+    ballSprite.body.velocity.x += vx*0.25; ballSprite.body.velocity.y += vy*0.25;
+  }
+
+  // joystick state
+  let joystick = {active:false, baseX:0, baseY:0, knobX:0, knobY:0, maxRadius:60, forceX:0, forceY:0};
+
+  function setupJoystick(scene){
+    const area = document.getElementById('joyArea');
+    // overlay canvas for knob visuals
+    const overlay = document.createElement('canvas'); overlay.style.position='absolute'; overlay.style.left='0'; overlay.style.top='0'; overlay.width = area.clientWidth; overlay.height = area.clientHeight; overlay.style.width='100%'; overlay.style.height='100%'; overlay.style.zIndex=13;
+    area.appendChild(overlay);
+    const ctx = overlay.getContext('2d');
+
+    // set base position centered in area
+    function resizeOverlay(){ overlay.width = area.clientWidth; overlay.height = area.clientHeight; overlay.style.width='100%'; overlay.style.height='100%'; joystick.baseX = overlay.width*0.48; joystick.baseY = overlay.height*0.6; joystick.maxRadius = Math.min(overlay.width, overlay.height)*0.22; drawKnob(); }
+    resizeOverlay(); window.addEventListener('resize', resizeOverlay);
+
+    // handle pointer events inside area
+    area.addEventListener('pointerdown', (e)=>{
+      joystick.active = true; const rect = area.getBoundingClientRect(); joystick.knobX = e.clientX - rect.left; joystick.knobY = e.clientY - rect.top; updateForce(); drawKnob();
+    });
+    window.addEventListener('pointermove', (e)=>{ if(!joystick.active) return; const rect = area.getBoundingClientRect(); joystick.knobX = e.clientX - rect.left; joystick.knobY = e.clientY - rect.top; updateForce(); drawKnob(); });
+    window.addEventListener('pointerup', ()=>{ joystick.active=false; joystick.forceX=0; joystick.forceY=0; drawKnob(); });
+
+    function updateForce(){ const dx = joystick.knobX - joystick.baseX; const dy = joystick.knobY - joystick.baseY; const dist = Math.sqrt(dx*dx+dy*dy); const r = Math.min(dist, joystick.maxRadius); const angle = Math.atan2(dy,dx); joystick.forceX = (r/joystick.maxRadius)*Math.cos(angle); joystick.forceY = (r/joystick.maxRadius)*Math.sin(angle); }
+
+    function drawKnob(){ ctx.clearRect(0,0,overlay.width,overlay.height); // base circle
+      ctx.beginPath(); ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.arc(joystick.baseX, joystick.baseY, joystick.maxRadius, 0, Math.PI*2); ctx.fill();
+      // knob
+      const kx = joystick.active ? joystick.knobX : joystick.baseX; const ky = joystick.active ? joystick.knobY : joystick.baseY;
+      ctx.beginPath(); ctx.fillStyle='rgba(255,255,255,0.18)'; ctx.arc(kx, ky, joystick.maxRadius*0.38, 0, Math.PI*2); ctx.fill();
+    }
+
+    // expose updateJoystickPosition for resize handling
+    window.updateJoystickPosition = resizeOverlay;
+  }
+
+  // actions: pass / shoot / skill
+  function doPass(type){ // simple pass: kick ball in direction from player to other player or forward
+    const p = selectedPlayer; if(!p) return;
+    // determine direction: toward other player if close, otherwise forward by joystick
+    const targetX = (p === playerA) ? playerB.container.x : playerA.container.x;
+    const targetY = (p === playerA) ? playerB.container.y : playerA.container.y;
+    const dx = targetX - p.container.x; const dy = targetY - p.container.y; const mag = Math.sqrt(dx*dx+dy*dy) || 1;
+    const power = (type === 'long')? 450 : (type==='through'? 280 : 220);
+    ball.body.velocity.x = (dx/mag)*power; ball.body.velocity.y = (dy/mag)*power;
+  }
+  function doShoot(){ const p = selectedPlayer; if(!p) return; // shoot toward opponent goal
+    const w = game.scale.width; const h = game.scale.height; const goalX = (p===playerA)? w-30 : 30; const goalY = h/2;
+    const dx = goalX - p.container.x; const dy = goalY - p.container.y; const mag = Math.sqrt(dx*dx+dy*dy)||1; ball.body.velocity.x = (dx/mag)*520; ball.body.velocity.y = (dy/mag)*520; }
+  function performSkill(p){ if(!p) return; // quick evasive move: a short dash perpendicular to current velocity
+    const dash = 160; // pixels
+    // attempt to move perpendicular to joystick direction
+    const fx = joystick.forceX; const fy = joystick.forceY; let nx = -fy, ny = fx; // perp
+    // if joystick has no direction, dash forward
+    if(Math.abs(fx)<0.15 && Math.abs(fy)<0.15){ nx = 1; ny = 0; if(p === playerA) nx = 1; else nx = -1 }
+    p.sprite.body.velocity.x += nx*dash; p.sprite.body.velocity.y += ny*dash; }
+
+  function update(time, dt){
+    const scene = this;
+    // apply joystick forces to selected player
+    if(selectedPlayer){
+      const px = joystick.forceX || 0; const py = joystick.forceY || 0;
+      const baseSpeed = selectedPlayer.speed; const sprint = selectedPlayer.isSprinting?1.6:1.0;
+      const vx = px * baseSpeed * sprint; const vy = py * baseSpeed * sprint;
+      selectedPlayer.sprite.body.setVelocity(vx, vy);
+      selectedPlayer.container.x = selectedPlayer.sprite.x; selectedPlayer.container.y = selectedPlayer.sprite.y;
+      // keep label updated from stored name
+      selectedPlayer.label.setText(selectedPlayer===playerA? names.a : names.b);
+    }
+    // simple friction for ball
+    ball.body.velocity.x *= 0.997; ball.body.velocity.y *= 0.997;
+
+    // keep other player's container synced (if moved by physics/collisions)
+    [playerA, playerB].forEach(p=>{ if(p!==selectedPlayer){ p.container.x = p.sprite.x; p.container.y = p.sprite.y; } });
+  }
+
+  // END of game script
+  </script>  <!-- Usage notes (not visible in page):
+    - This prototype uses generated graphics so it runs on GitHub Pages without extra assets.
+    - To replace graphics with real sprites: add files to /assets and load them in preload(); replace createPlayer with sprite images.
+    - Next step after you test: expand to 11 players per team, add passing targeting, add goals and scoring, and polish the isometric pitch art.
+  --></body>
 </html>
